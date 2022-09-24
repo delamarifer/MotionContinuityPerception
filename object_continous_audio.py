@@ -13,24 +13,33 @@ from timeit import default_timer as timer
 start = timer()
 
 # declare pathe for saving the audio
-path = EXAMPLE_CONTROLLER_OUTPUT_PATH.joinpath(run_type + "_scrape_sound")
+# path = EXAMPLE_CONTROLLER_OUTPUT_PATH.joinpath(run_type + "_scrape_sound")
+
+
+path = EXAMPLE_CONTROLLER_OUTPUT_PATH.joinpath(run_type).joinpath("video.mp4")
 print("******",path)
+audio = AudioInitializer(avatar_id="a", framerate=60)
 print(f"Audio will be saved to: {path}")
 c.add_ons.extend([camera, audio, py_impact])
 
-
+audio_device = audio_device = "Headset Microphone (Oculus Virtual Audio Device)"
 
 position = TDWUtils.get_expected_window_position(window_width=1920, window_height=1080)
 
-commands = [TDWUtils.create_empty_room(40, 40),
-            {"$type": "start_video_capture_osx",
-             "output_path":path,
+commands = [TDWUtils.create_empty_room(60, 60),
+        {"$type": "set_target_framerate", 
+                        "framerate": 60}, 
+                         {"$type": "set_screen_size",
+             "width": 1920,
+             "height": 1080},
+            {"$type": "start_video_capture_windows",
+             "output_path":str(path.resolve()),
              "position": position,
              "log_args": True,
-             "audio_device": audio}]
+             "audio_device": audio_device}]
 
 # create empty room 
-c.communicate(TDWUtils.create_empty_room(40, 40))
+c.communicate(commands)
 
 
 # initialize object placer
@@ -146,6 +155,9 @@ for i in range(200):
     #     break
 
 AudioUtils.stop()
+
+# Stop video capture.
+
 # print(recorder.get_num_frames())
 # recorder.stop()
 import os
@@ -168,7 +180,7 @@ if args.object_num > 1:
                     "id": surface2_id}])
 
 
-
+c.communicate({"$type": "stop_video_capture"})
 c.communicate({"$type": "terminate"})
 
 end = timer()
